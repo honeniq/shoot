@@ -8,8 +8,23 @@ function init_player()
     bullets={},
     x=64,
     y=100,
+    previous_key1=false,
+
     shot=function(self)
       add(self.bullets, add_bullet())
+    end
+    ,
+    update=function(self)
+      if(btn(0) and player.x>0)   player.x-=2
+      if(btn(1) and player.x<128) player.x+=2
+      if(btn(2) and player.y>0)   player.y-=2
+      if(btn(3) and player.y<128) player.y+=2
+      if(btn(4) and previous_key1==false) player.shot(player)
+      previous_key1=btn(4)
+    end
+    ,
+    draw=function(self)
+      spr(1, player.x-4, player.y-4)
     end
   }
   bullet_count=0
@@ -26,7 +41,7 @@ end
 
 function draw_bullets()
   foreach(player.bullets, function(b)
-    spr(5, b.x, b.y)
+    spr(5, b.x-4, b.y-4)
   end)
 end
 
@@ -45,18 +60,13 @@ function _init()
 end
 
 function _update()
-  if(btn(0)) player.x-=2
-  if(btn(1)) player.x+=2
-  if(btn(2)) player.y-=2
-  if(btn(3)) player.y+=2
-  if(btn(4)) player.shot(player)
-
+  player.update(self)
   update_bullets()
 end
 
 function _draw()
   cls()
-  spr(1, player.x, player.y)
+  player.draw(self)
   draw_bullets()
   print(bullet_count)
 end
