@@ -11,34 +11,39 @@ character8x8.new = function(self, _x, _y)
 end
 
 --player
-player={
-  bullets={},
-  x=64,
-  y=100,
-  previous_key1=false,
+player={}
+player.new = function()
+  local p = {}
 
-  shot=function(self)
-    add(self.bullets, bullet:new(self.x, self.y))
+  p.bullets={}
+  p.x = 64
+  p.y = 100
+  p.previous_key1=false
+
+  p.shot = function(self)
+    add(self.bullets, bullet.new(self.x, self.y))
   end
-  ,
-  update=function(self)
-    if(btn(0) and player.x>0)   player.x-=2
-    if(btn(1) and player.x<128) player.x+=2
-    if(btn(2) and player.y>0)   player.y-=2
-    if(btn(3) and player.y<128) player.y+=2
-    if(btn(4) and previous_key1==false) player.shot(player)
+
+  p.update = function(self)
+    if(btn(0) and self.x>0)   self.x-=2
+    if(btn(1) and self.x<128) self.x+=2
+    if(btn(2) and self.y>0)   self.y-=2
+    if(btn(3) and self.y<128) self.y+=2
+    if(btn(4) and previous_key1==false) self:shot()
     previous_key1=btn(4)
   end
-  ,
-  draw=function(self)
-    spr(1, player.x-4, player.y-4)
+
+  p.draw = function(self)
+    spr(1, self.x-4, self.y-4)
   end
-}
+  return p
+end
+
 bullet_count=0
 
 --bullet
 bullet = {}
-bullet.new = function(self, _x, _y)
+bullet.new = function(_x, _y)
   local b = {}
   b.x = _x
   b.y = _y
@@ -47,10 +52,10 @@ bullet.new = function(self, _x, _y)
   b.update = function(self)
     self.y -= 3
     self.life -= 1
-    if(self.life < 1) del(player.bullets, self)
+    if(self.life < 1) del(pl.bullets, self)
   end
 
-  b.draw=function(self)
+  b.draw =function(self)
     spr(5, self.x-4, self.y-4)
   end
 
@@ -58,34 +63,31 @@ bullet.new = function(self, _x, _y)
 end
 
 function draw_bullets()
-  foreach(player.bullets, function(b)
-    --spr(5, b.x-4, b.y-4)
+  foreach(pl.bullets, function(b)
+    spr(5, b.x-4, b.y-4)
     b:draw()
   end)
 end
 
 function update_bullets()
   bullet_count=0
-  foreach(player.bullets, function(b)
+  foreach(pl.bullets, function(b)
     b:update()
-    --b.y -= 3
-    --b.life -= 1
-    --bullet_count += 1
-    --if(b.life < 1) del(player.bullets, b)
   end)
 end
 
 function _init()
+  pl = player.new()
 end
 
 function _update()
-  player.update(self)
+  pl:update()
   update_bullets()
 end
 
 function _draw()
   cls()
-  player.draw(self)
+  pl:draw()
   draw_bullets()
   print(bullet_count)
 end
