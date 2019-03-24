@@ -2,61 +2,80 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
-
-function init_player()
-  player={
-    bullets={},
-    x=64,
-    y=100,
-    previous_key1=false,
-
-    shot=function(self)
-      add(self.bullets, add_bullet())
-    end
-    ,
-    update=function(self)
-      if(btn(0) and player.x>0)   player.x-=2
-      if(btn(1) and player.x<128) player.x+=2
-      if(btn(2) and player.y>0)   player.y-=2
-      if(btn(3) and player.y<128) player.y+=2
-      if(btn(4) and previous_key1==false) player.shot(player)
-      previous_key1=btn(4)
-    end
-    ,
-    draw=function(self)
-      spr(1, player.x-4, player.y-4)
-    end
-  }
-  bullet_count=0
+--character
+character8x8={}
+character8x8.new = function(self, _x, _y)
+  self.x = _x
+  self.y = _y
+  self.life = 1
 end
 
-function add_bullet()
-  local bullet={
-    x=player.x,
-    y=player.y,
-    life=50
-  }
-  return bullet
+--player
+player={
+  bullets={},
+  x=64,
+  y=100,
+  previous_key1=false,
+
+  shot=function(self)
+    add(self.bullets, bullet:new(self.x, self.y))
+  end
+  ,
+  update=function(self)
+    if(btn(0) and player.x>0)   player.x-=2
+    if(btn(1) and player.x<128) player.x+=2
+    if(btn(2) and player.y>0)   player.y-=2
+    if(btn(3) and player.y<128) player.y+=2
+    if(btn(4) and previous_key1==false) player.shot(player)
+    previous_key1=btn(4)
+  end
+  ,
+  draw=function(self)
+    spr(1, player.x-4, player.y-4)
+  end
+}
+bullet_count=0
+
+--bullet
+bullet = {}
+bullet.new = function(self, _x, _y)
+  local b = {}
+  b.x = _x
+  b.y = _y
+  b.life = 50
+
+  b.update = function(self)
+    self.y -= 3
+    self.life -= 1
+    if(self.life < 1) del(player.bullets, self)
+  end
+
+  b.draw=function(self)
+    spr(5, self.x-4, self.y-4)
+  end
+
+  return b
 end
 
 function draw_bullets()
   foreach(player.bullets, function(b)
-    spr(5, b.x-4, b.y-4)
+    --spr(5, b.x-4, b.y-4)
+    b:draw()
   end)
 end
 
 function update_bullets()
   bullet_count=0
   foreach(player.bullets, function(b)
-    b.y -= 3
-    b.life -= 1
-    bullet_count += 1
-    if(b.life < 1) del(player.bullets, b)
+    b:update()
+    --b.y -= 3
+    --b.life -= 1
+    --bullet_count += 1
+    --if(b.life < 1) del(player.bullets, b)
   end)
 end
 
 function _init()
-  init_player()
 end
 
 function _update()
