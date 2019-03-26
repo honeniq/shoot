@@ -2,6 +2,11 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
+--global vars
+shot_count=0
+shots={}
+enemys={}
+
 --character
 character8x8={}
 character8x8.new = function(self, _x, _y)
@@ -15,13 +20,12 @@ player={}
 player.new = function()
   local p = {}
 
-  p.bullets={}
   p.x = 64
   p.y = 100
   p.previous_key1=false
 
-  p.shot = function(self)
-    add(self.bullets, bullet.new(self.x, self.y))
+  p.fire = function(self)
+    add(shots, shot.new(self.x, self.y))
   end
 
   p.update = function(self)
@@ -29,7 +33,7 @@ player.new = function()
     if(btn(1) and self.x<128) self.x+=2
     if(btn(2) and self.y>0)   self.y-=2
     if(btn(3) and self.y<128) self.y+=2
-    if(btn(4) and previous_key1==false) self:shot()
+    if(btn(4) and previous_key1==false) self:fire()
     previous_key1=btn(4)
   end
 
@@ -39,11 +43,30 @@ player.new = function()
   return p
 end
 
-bullet_count=0
 
---bullet
-bullet = {}
-bullet.new = function(_x, _y)
+enemy = {}
+enemy.new = function(_x, _y)
+  local e = {}
+  e.x = _x
+  e.y = _y
+  
+  e.update = function(self)
+    self.y += 2
+    if(self.y > 128) then
+      del(enemys, self)
+    end
+  end
+
+  e.draw = function(self)
+    spr(17, self.x-4, self.y-4)
+  end
+  return e
+end
+
+
+--shot
+shot = {}
+shot.new = function(_x, _y)
   local b = {}
   b.x = _x
   b.y = _y
@@ -52,7 +75,7 @@ bullet.new = function(_x, _y)
   b.update = function(self)
     self.y -= 3
     self.life -= 1
-    if(self.life < 1) del(pl.bullets, self)
+    if(self.life < 1) del(shots, self)
   end
 
   b.draw =function(self)
@@ -62,18 +85,36 @@ bullet.new = function(_x, _y)
   return b
 end
 
-function draw_bullets()
-  foreach(pl.bullets, function(b)
+function draw_shots()
+  foreach(shots, function(b)
     spr(5, b.x-4, b.y-4)
     b:draw()
   end)
 end
 
-function update_bullets()
-  bullet_count=0
-  foreach(pl.bullets, function(b)
+function update_shots()
+  shot_count=0
+  foreach(shots, function(b)
     b:update()
   end)
+end
+
+function draw_enemys()
+  foreach(enemys, function(e)
+    e:draw()
+  end)
+end
+
+function update_enemys()
+  foreach(enemys, function(e)
+    e:update()
+  end)
+end
+
+function generate_enemys()
+  if(flr(rnd(4))==0) then
+    add(enemys, enemy.new(rnd(128), 0))
+  end
 end
 
 function _init()
@@ -82,14 +123,18 @@ end
 
 function _update()
   pl:update()
-  update_bullets()
+  generate_enemys()
+  update_enemys()
+  update_shots()
 end
 
 function _draw()
   cls()
   pl:draw()
-  draw_bullets()
-  print(bullet_count)
+  draw_enemys()
+  draw_shots()
+  print(#shots)
+  print(#enemys)
 end
 
 __gfx__
