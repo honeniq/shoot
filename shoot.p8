@@ -10,30 +10,40 @@ interval=5
 count_combinations=0
 
 --character
-character8x8={}
-character8x8.new = function(self, _x, _y)
-  self.x = _x
-  self.y = _y
-  self.life = 1
+__character={}
+__character.new = function(self, _x, _y)
+  local obj = {}
+
+  obj.x = _x
+  obj.y = _y
+  obj.life = 1
+  obj.sprite = 0
+
+  function obj:draw()
+    spr(obj.sprite, obj.x - 4, obj.y - 4)
+  end
+
+  return obj
 end
 
 --player
 player={}
 player.new = function()
-  local p = {}
+  local this = __character:new(_x, _y)
 
-  p.x = 64
-  p.y = 100
-  p.previous_key1=false
+  this.x = 64
+  this.y = 100
+  this.previous_key1=false
+  this.sprite = 1
 
-  p.fire = function(self)
+  this.fire = function(self)
     add(shots, shot.new(self.x, self.y))
     add(shots, shot.new(self.x-3, self.y))
     add(shots, shot.new(self.x+3, self.y))
     sfx(0)
   end
 
-  p.update = function(self)
+  this.update = function(self)
     if(btn(0) and self.x>0)   self.x-=2
     if(btn(1) and self.x<128) self.x+=2
     if(btn(2) and self.y>0)   self.y-=2
@@ -46,53 +56,45 @@ player.new = function()
     previous_key1=btn(4)
   end
 
-  p.draw = function(self)
+  this.draw = function(self)
     spr(1, self.x-4, self.y-4)
   end
-  return p
+
+  return this 
 end
 
 
 enemy = {}
 enemy.new = function(_x, _y)
-  local e = {}
-  e.x = _x
-  e.y = _y
-  e.speed = flr(rnd(3)) + 1
+  local this = __character:new(_x, _y)
+  this.speed = flr(rnd(3)) + 1
+  this.sprite = 17
   
-  e.update = function(self)
+  this.update = function(self)
     self.y += self.speed
     if(self.y > 128) then
       del(enemys, self)
     end
   end
 
-  e.draw = function(self)
-    spr(17, self.x-4, self.y-4)
-  end
-  return e
+  return this 
 end
 
 
 --shot
 shot = {}
 shot.new = function(_x, _y)
-  local b = {}
-  b.x = _x
-  b.y = _y
-  b.life = 50
+  local this = __character:new(_x, _y)
+  this.life = 50
+  this.sprite = 5
 
-  b.update = function(self)
+  this.update = function(self)
     self.y -= 3
     self.life -= 1
     if(self.life < 1) del(shots, self)
   end
 
-  b.draw =function(self)
-    spr(5, self.x-4, self.y-4)
-  end
-
-  return b
+  return this
 end
 
 function draw_shots()
