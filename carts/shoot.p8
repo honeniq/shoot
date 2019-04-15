@@ -20,6 +20,8 @@ __character.new = function(self, _x, _y)
 
   obj.x = _x
   obj.y = _y
+  obj.colx = 4
+  obj.coly = 4
   obj.life = 1
   obj.sprite = 0
 
@@ -32,6 +34,15 @@ __character.new = function(self, _x, _y)
     local x = flr(self.x / GRID) + 1
     local y = flr(self.y / GRID) + 1
     return bor( BITSKIP[x], shl(BITSKIP[y], 1) )
+  end
+
+  function obj:col_square()
+    local sq = {}
+    sq.x1 = self.x - self.colx
+    sq.x2 = self.x + self.colx
+    sq.y1 = self.y - self.coly
+    sq.y2 = self.y + self.coly
+    return sq
   end
 
   return obj
@@ -99,6 +110,8 @@ shot.new = function(_x, _y)
   local this = __character:new(_x, _y)
   this.life = 50
   this.sprite = 5
+  this.colx = 1
+  this.coly = 4
 
   this.update = function(self)
     self.y -= 3
@@ -156,10 +169,19 @@ function collide_shot_enemy()
   end)
 end
 
-function collide(obj1, obj2)
-  return sqrt((obj1.x-obj2.x)^2 + (obj1.y-obj2.y)^2) < 4
-end
+--function collide(obj1, obj2)
+--  return sqrt((obj1.x-obj2.x)^2 + (obj1.y-obj2.y)^2) < 4
+--end
 
+function collide(obj1, obj2)
+  o1 = obj1:col_square()
+  o2 = obj2:col_square()
+  if(o1.x1 > o2.x1 and o1.x1 < o2.x2 and
+     o1.y1 > o2.y1 and o1.y1 < o2.y2) then return true end
+  if(o1.x2 > o2.x1 and o1.x2 < o2.x2 and
+     o1.y2 > o2.y1 and o1.y2 < o2.y2) then return true end
+  return false
+end
 
 function _init()
   pl = player.new()
@@ -184,10 +206,6 @@ function _draw()
   print("intrvl:" ..interval)
   print("combi :" ..count_combinations)
   print("morton:" ..pl:morton())
-  print("x     :" ..pl.x)
-  print("y     :" ..pl.y)
-  print("xfl   :" ..flr(pl.x/GRID))
-  print("yfl   :" ..flr(pl.y/GRID))
 end
 
 __gfx__
